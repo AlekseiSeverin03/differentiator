@@ -1,0 +1,7 @@
+
+# Ecept file with: ".o"
+*.o
+
+
+# Ecept file with: ".swp"
+*.swp

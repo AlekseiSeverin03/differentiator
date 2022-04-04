@@ -15,10 +15,10 @@
 //#define LABEL_DIG  "\"data: %f | { <fl%d> left child | <fr%d> right child } \""
 //#define LABEL_STR  "\"data: %s | { <fl%d> left child | <fr%d> right child } \""
 
-#define  MAX_LEN_VAR  10
-#define  MAX_LEN_OP   10
 
-const int MAX_DEPTH = 10;
+const int MAX_LEN_VAR = 10;
+const int MAX_LEN_OP  = 10;
+const int MAX_DEPTH   = 10;
 
 
 enum TYPE_VALUE
@@ -33,6 +33,9 @@ enum COMMANDS
 {
 	CMD_ADD = 1,
 	CMD_SUB = 2,
+	CMD_MUL = 3,
+	CMD_DIV = 4,
+	CMD_POW = 5,
 };
 
 
@@ -71,8 +74,23 @@ int Processing_Operator (Node_t **node_ptr_ptr, char *buf, int *cur_pos);
 int MakeNode            (Node_t **node_ptr_ptr, char *buf, 
 						 int *cur_pos, char *buf_str);
 int MakeTree            (Node_t **root, char *buf, char *buf_str);
-int CopyBranch          (Node_t *root_from_ptr, Node_t **root_to_ptr);
+int CopyBranch          (Node_t *src_root_ptr, Node_t **dst_root_ptr);
 int DeleteBranch        (Node_t **node_ptr_ptr);
+
+
+//__________________________=====================_______________________________
+//                          |   Differetiation  |
+//                          =====================
+
+int Diftor (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Const (Node_t **node_ptr_ptr);
+int d_Var (Node_t **node_ptr_ptr);
+int D_Opr (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Add (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Sub (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Mul (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Div (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Pow (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
 
 
 //__________________________=====================_______________________________

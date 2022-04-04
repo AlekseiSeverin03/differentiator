@@ -19,8 +19,11 @@ int main ()
 	Node_t *root_copy = NULL;
 	CopyBranch (root, &root_copy);
 
-	InOrder (root_copy);
-	Graph_Dump (root_copy);
+	Node_t *root_dif = NULL;
+	Diftor (root_copy, &root_dif);
+
+	InOrder (root_dif);
+	Graph_Dump (root_dif);
 
 	DeleteBranch (&root);
 	DeleteBranch (&root_copy);

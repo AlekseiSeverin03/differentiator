@@ -186,6 +186,22 @@ printf ("O\t|%s|\n", buf + *cur_pos);
 	{	
 		NodeCtor_Opr (node_ptr_ptr, CMD_ADD);
 	}
+	else if (!strcmp (op, "-"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_SUB);
+	}
+	else if (!strcmp (op, "*"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_MUL);
+	}
+	else if (!strcmp (op, "/"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_DIV);
+	}
+	else if (!strcmp (op, "^"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_POW);
+	}
 	else
 	{
 		printf ("!!Error operator <%s>!!\n", op);
@@ -206,43 +222,43 @@ printf ("O\t|%s|\n", buf + *cur_pos);
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int CopyBranch (Node_t *root_from_ptr, Node_t **root_to_ptr)
+int CopyBranch (Node_t *src_root_ptr, Node_t **dst_root_ptr_ptr)
 {
-	assert (root_from_ptr != NULL);
-	assert (root_to_ptr   != NULL);
+	assert (src_root_ptr   != NULL);
+	assert (dst_root_ptr_ptr != NULL);
 
-	switch (root_from_ptr->type)
+	switch (src_root_ptr->type)
 	{
 		case DIGIT:
 		{
-			NodeCtor_Dig (root_to_ptr, root_from_ptr->value.dig);
+			NodeCtor_Dig (dst_root_ptr_ptr, src_root_ptr->value.dig);
 			break;
 		}
 		case OPERATOR:
 		{
-			NodeCtor_Opr (root_to_ptr, root_from_ptr->value.cmd_opr);
+			NodeCtor_Opr (dst_root_ptr_ptr, src_root_ptr->value.cmd_opr);
 			break;
 		}
 		case VARIABLE:
 		{
-			NodeCtor_Var (root_to_ptr, root_from_ptr->value.var);
+			NodeCtor_Var (dst_root_ptr_ptr, src_root_ptr->value.var);
 			break;
 		}
 		default:
 		{
-			printf ("!!Error type value: <%d>!!\n", root_from_ptr->type);
+			printf ("!!Error type value: <%d>!!\n", src_root_ptr->type);
 			return 1;
 		}
 	}
 			
-	if (root_from_ptr->left_node != NULL)  
+	if (src_root_ptr->left_node != NULL)  
 	{
-		CopyBranch (root_from_ptr->left_node, &((*root_to_ptr)->left_node));
+		CopyBranch (src_root_ptr->left_node, &((*dst_root_ptr_ptr)->left_node));
 	}
 
-	if (root_from_ptr->right_node != NULL)  
+	if (src_root_ptr->right_node != NULL)  
 	{
-		CopyBranch (root_from_ptr->right_node, &((*root_to_ptr)->right_node));
+		CopyBranch (src_root_ptr->right_node, &((*dst_root_ptr_ptr)->right_node));
 	}
 	
 	return 0;
@@ -272,6 +288,222 @@ int DeleteBranch (Node_t **node_ptr_ptr)
 
 
 
+//_________________________======================________________________________
+//                         |   Differentiation  |
+//                         ======================
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Diftor (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+
+	switch (src_node_ptr->type)
+	{
+		case DIGIT:
+		{
+			d_Const (dst_node_ptr_ptr);
+			break;
+		}
+		case OPERATOR:
+		{
+			D_Opr (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case VARIABLE:
+		{
+			d_Var (dst_node_ptr_ptr);
+			break;
+		}
+		default:
+		{
+			printf ("!!Error type value: <%d>!!\n", src_node_ptr->type);
+			return 1;
+		}
+	}
+			
+	return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Const (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+
+	NodeCtor_Dig (node_ptr_ptr, 0);
+
+	return 0;
+}
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Var (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+
+	NodeCtor_Dig (node_ptr_ptr, 1);
+
+	return 0;
+}
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int D_Opr (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+
+	switch (src_node_ptr->value.cmd_opr)
+	{
+		case CMD_ADD:
+		{
+			d_Add (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_SUB:
+		{
+			d_Sub (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_MUL:
+		{
+			d_Mul (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_DIV:
+		{
+			d_Div (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_POW:
+		{
+			d_Pow (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		default:
+		{
+			printf ("!!Error command: <%d>!!\n", src_node_ptr->value.cmd_opr);
+			return 1;
+		}
+	}		
+
+	return 0;
+}
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Add (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_ADD);
+
+	Diftor (src_node_ptr->left_node, &((*dst_node_ptr_ptr)->left_node));
+	Diftor (src_node_ptr->right_node, &((*dst_node_ptr_ptr)->right_node));
+
+	return 0;
+}
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Sub (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_SUB);
+
+	Diftor (src_node_ptr->left_node, &((*dst_node_ptr_ptr)->left_node));
+	Diftor (src_node_ptr->right_node, &((*dst_node_ptr_ptr)->right_node));
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Mul (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_ADD);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node), CMD_MUL);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->right_node), CMD_MUL);
+
+	Diftor (src_node_ptr->left_node, 
+			&((*dst_node_ptr_ptr)->left_node->left_node));
+	CopyBranch (src_node_ptr->right_node,
+			    &((*dst_node_ptr_ptr)->left_node->right_node));
+
+	CopyBranch (src_node_ptr->left_node,
+			    &((*dst_node_ptr_ptr)->right_node->left_node));
+	Diftor (src_node_ptr->right_node, 
+			&((*dst_node_ptr_ptr)->right_node->right_node));
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Div (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_DIV);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node), CMD_SUB);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node->left_node), CMD_MUL);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node->right_node), CMD_MUL);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->right_node), CMD_POW);
+
+	Diftor (src_node_ptr->left_node, 
+			&((*dst_node_ptr_ptr)->left_node->left_node->left_node));
+	CopyBranch (src_node_ptr->right_node,
+			    &((*dst_node_ptr_ptr)->left_node->left_node->right_node));
+
+	CopyBranch (src_node_ptr->left_node,
+			    &((*dst_node_ptr_ptr)->left_node->right_node->left_node));
+	Diftor (src_node_ptr->right_node, 
+			&((*dst_node_ptr_ptr)->left_node->right_node->right_node));
+
+	CopyBranch (src_node_ptr->right_node, 
+				&((*dst_node_ptr_ptr)->right_node->left_node));
+	NodeCtor_Dig (&((*dst_node_ptr_ptr)->right_node->right_node), 2);
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Pow (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr   != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_MUL);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node), CMD_POW);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->right_node), CMD_MUL);
+
+	CopyBranch (src_node_ptr->left_node,
+				&((*dst_node_ptr_ptr)->left_node->left_node));
+	NodeCtor_Dig (&((*dst_node_ptr_ptr)->left_node->right_node),
+				  src_node_ptr->right_node->value.dig - 1);
+
+	NodeCtor_Dig (&((*dst_node_ptr_ptr)->right_node->left_node),
+				  src_node_ptr->right_node->value.dig);
+	
+	Diftor (src_node_ptr->left_node, 
+			&((*dst_node_ptr_ptr)->right_node->right_node));
+	
+	return 0;
+}
+
+
+	
+
 
 //_________________________======================________________________________
 //                         |     Print Tree     |
@@ -292,6 +524,10 @@ int PrintNode (Node_t *node_ptr)
 		switch (node_ptr->value.cmd_opr) 
 		{
 			case CMD_ADD: printf ("+"); break;
+			case CMD_SUB: printf ("-"); break;
+			case CMD_MUL: printf ("*"); break;
+			case CMD_DIV: printf ("/"); break;
+			case CMD_POW: printf ("^"); break;
 			default: printf ("!!Error command <%d>!!\n", node_ptr->value.cmd_opr);
 		}
 	}
@@ -495,6 +731,38 @@ int Print_Node_Info (Node_t *node_ptr, int depth)
 									LABEL_OPR 
 					    		   ", fillcolor = \"%s\"];}\n", 
 						 depth, node_ptr, "+", "yellow");
+				break;	
+			}
+			case CMD_SUB: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "-", "yellow");
+				break;	
+			}
+			case CMD_MUL: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "*", "yellow");
+				break;	
+			}
+			case CMD_DIV: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "/", "yellow");
+				break;	
+			}
+			case CMD_POW: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "^", "yellow");
 				break;	
 			}
 			default : break;
