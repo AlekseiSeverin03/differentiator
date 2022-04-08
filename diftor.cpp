@@ -118,7 +118,7 @@ int MakeNode (Node_t **node_ptr_ptr, char *buf, int *cur_pos, char *buf_str)
 
 			if (*(buf + *cur_pos) != ')')
 			{
-				printf ("!!Error char: <%c>!!\n", *(buf + *cur_pos));
+				printf ("3!Error char: <%c>!!\n", *(buf + *cur_pos));
 				return 1;
 			}	
 
@@ -131,7 +131,7 @@ int MakeNode (Node_t **node_ptr_ptr, char *buf, int *cur_pos, char *buf_str)
 	}
 	else
 	{
-		printf ("!!Error char: <%c>!!\n", tmp);
+		printf ("4!Error char: <%c>!!\n", tmp);
 		return 1;
 	}
 
@@ -146,15 +146,35 @@ int Processing_Dig_Var (Node_t **node_ptr_ptr, char *buf,
 printf ("V\t|%s|\n", buf + *cur_pos);
 	double dig = 0;	
 	int read_c = 0;
+	char unary_op[10] = {};
+	sscanf (buf + *cur_pos, "%[a-z]", unary_op);
+	int len_unary_op = strlen (unary_op);
+//printf ("$ %s\t%d\n", unary_op, len_unary_op);
 
 	if ((read_c = sscanf (buf + *cur_pos, "%lf", &dig)) != 0)
 	{
 		NodeCtor_Dig (node_ptr_ptr, dig);
 		*cur_pos += read_c;
 	}
+	else if (*(buf + *cur_pos + len_unary_op) == '(')        // It's unary operator!
+	{
+		Processing_Operator (node_ptr_ptr, buf, cur_pos);
+		MakeNode (&((*node_ptr_ptr)->right_node), buf, cur_pos, buf_str);
+
+		if (*(buf + *cur_pos) != ')')
+		{
+			printf ("3!Error char: <%c>!!\n", *(buf + *cur_pos));
+			return 1;
+		}	
+
+		(*cur_pos)++;
+		return 0;
+	}
 	else
 	{
-		read_c = sscanf (buf + *cur_pos, "%[a-z]", buf_str);
+//printf ("$ %c\n", *(buf + *cur_pos + len_unary_op));
+		sscanf (buf + *cur_pos, "%[a-z]", buf_str);
+		read_c = strlen (buf_str);
 		NodeCtor_Var (node_ptr_ptr, buf_str);
 		*cur_pos += read_c;
 		buf_str += read_c + 1;
@@ -164,7 +184,7 @@ printf ("V\t|%s|\n", buf + *cur_pos);
 	sscanf (buf + *cur_pos, "%c", &tmp);
 	if (tmp != ')')
 	{
-		printf ("!!Error char: <%c>!!\n", tmp);
+		printf ("1!!Error char: <%c>!!\n", tmp);
 		return 1;
 	}
 	
@@ -180,7 +200,8 @@ printf ("O\t|%s|\n", buf + *cur_pos);
 	char op[MAX_LEN_OP] = {};
 	int  read_c = 0;
 
-	read_c = sscanf (buf + *cur_pos, "%[^(]", op);
+	sscanf (buf + *cur_pos, "%[^(]", op);
+	read_c = strlen (op);
 
 	if (!strcmp (op, "+"))
 	{	
@@ -202,6 +223,18 @@ printf ("O\t|%s|\n", buf + *cur_pos);
 	{	
 		NodeCtor_Opr (node_ptr_ptr, CMD_POW);
 	}
+	else if (!strcmp (op, "ln"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_LN);
+	}
+	else if (!strcmp (op, "sin"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_SIN);
+	}
+	else if (!strcmp (op, "cos"))
+	{	
+		NodeCtor_Opr (node_ptr_ptr, CMD_COS);
+	}
 	else
 	{
 		printf ("!!Error operator <%s>!!\n", op);
@@ -213,7 +246,7 @@ printf ("O\t|%s|\n", buf + *cur_pos);
 	sscanf (buf + *cur_pos, "%c", &tmp);
 	if (tmp != '(')
 	{
-		printf ("!!Error char: <%c>!!\n", tmp);
+		printf ("2!Error char: <%c>!!\n", tmp);
 		return 1;
 	}
 	
@@ -352,7 +385,7 @@ int d_Var (Node_t **node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int D_Opr (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 
 	switch (src_node_ptr->value.cmd_opr)
@@ -382,6 +415,21 @@ int D_Opr (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 			d_Pow (src_node_ptr, dst_node_ptr_ptr);
 			break;
 		}
+		case CMD_LN:
+		{
+			d_Ln (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_SIN:
+		{
+			d_Sin (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
+		case CMD_COS:
+		{
+			d_Pow (src_node_ptr, dst_node_ptr_ptr);
+			break;
+		}
 		default:
 		{
 			printf ("!!Error command: <%d>!!\n", src_node_ptr->value.cmd_opr);
@@ -396,7 +444,7 @@ int D_Opr (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int d_Add (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 	
 	NodeCtor_Opr (dst_node_ptr_ptr, CMD_ADD);
@@ -411,7 +459,7 @@ int d_Add (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int d_Sub (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 	
 	NodeCtor_Opr (dst_node_ptr_ptr, CMD_SUB);
@@ -426,7 +474,7 @@ int d_Sub (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int d_Mul (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 	
 	NodeCtor_Opr (dst_node_ptr_ptr, CMD_ADD);
@@ -450,7 +498,7 @@ int d_Mul (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int d_Div (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 	
 	NodeCtor_Opr (dst_node_ptr_ptr, CMD_DIV);
@@ -480,7 +528,7 @@ int d_Div (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int d_Pow (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 {
-	assert (src_node_ptr   != NULL);
+	assert (src_node_ptr     != NULL);
 	assert (dst_node_ptr_ptr != NULL);
 	
 	NodeCtor_Opr (dst_node_ptr_ptr, CMD_MUL);
@@ -502,7 +550,408 @@ int d_Pow (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Ln (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr     != NULL);
+	assert (dst_node_ptr_ptr != NULL);
 	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_DIV);
+
+	CopyBranch (src_node_ptr->right_node,
+				&((*dst_node_ptr_ptr)->right_node));
+
+	Diftor (src_node_ptr->right_node, 
+			&((*dst_node_ptr_ptr)->left_node));
+	
+	return 0;
+}
+	
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int d_Sin (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr)
+{
+	assert (src_node_ptr     != NULL);
+	assert (dst_node_ptr_ptr != NULL);
+
+printf ("\t!\n");	
+	NodeCtor_Opr (dst_node_ptr_ptr, CMD_MUL);
+	NodeCtor_Opr (&((*dst_node_ptr_ptr)->left_node), CMD_COS);
+		
+printf ("\t%s\n", src_node_ptr->right_node->value.var);
+	CopyBranch (src_node_ptr->right_node,
+				&((*dst_node_ptr_ptr)->left_node->right_node));
+
+	Diftor (src_node_ptr->right_node, 
+			&((*dst_node_ptr_ptr)->right_node));
+	
+	return 0;
+}
+	
+
+
+//_________________________======================________________________________
+//                         |    Optimizations   |
+//                         ======================
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int ArithmeticConst (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr  != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			ArithmeticConst (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR))
+		{
+			ArithmeticConst (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->left_node->type == DIGIT) &&
+			((*node_ptr_ptr)->right_node->type == DIGIT))
+		{	
+			Arithmetic_Const (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+		
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Arithmetic_Const (Node_t **node_ptr_ptr)
+{	
+	assert (node_ptr_ptr  != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	(*node_ptr_ptr)->type = DIGIT;
+
+	switch ((*node_ptr_ptr)->value.cmd_opr) 
+	{
+		case CMD_ADD: 
+		{
+		  (*node_ptr_ptr)->value.dig = (*node_ptr_ptr)->left_node->value.dig +
+									   (*node_ptr_ptr)->right_node->value.dig;
+		  break;
+		}
+		case CMD_SUB: 
+		{
+		  (*node_ptr_ptr)->value.dig = (*node_ptr_ptr)->left_node->value.dig -
+									   (*node_ptr_ptr)->right_node->value.dig;
+		  break;
+		}
+		case CMD_MUL:
+		{
+		  (*node_ptr_ptr)->value.dig = (*node_ptr_ptr)->left_node->value.dig *
+									   (*node_ptr_ptr)->right_node->value.dig;
+		  break;
+		}
+		case CMD_DIV:
+		{
+		  (*node_ptr_ptr)->value.dig = (*node_ptr_ptr)->left_node->value.dig /
+									   (*node_ptr_ptr)->right_node->value.dig;
+		  break;
+		}
+		case CMD_POW: 
+		{
+		  (*node_ptr_ptr)->value.dig = 
+		  pow ((*node_ptr_ptr)->left_node->value.dig, 
+			   (*node_ptr_ptr)->right_node->value.dig);
+		  break;
+		}
+		default: printf ("!!Error command <%d>!!\n", 
+						 (*node_ptr_ptr)->value.cmd_opr);
+	}
+
+	DeleteBranch (&((*node_ptr_ptr)->left_node));
+	DeleteBranch (&((*node_ptr_ptr)->right_node));
+	(*node_ptr_ptr)->left_node = NULL;
+	(*node_ptr_ptr)->right_node = NULL;
+
+	return 0;
+}
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int MulOne (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			MulOne (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR)) 
+		{
+			MulOne (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->value.cmd_opr == CMD_MUL) &&						
+			((((*node_ptr_ptr)->left_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->left_node->value.dig == 1)) ||
+			 (((*node_ptr_ptr)->right_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->right_node->value.dig == 1))) )
+		{	
+			Mul_One (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Mul_One (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->left_node->type == DIGIT)
+	{
+		Node_t *tmp = NULL;
+		CopyBranch ((*node_ptr_ptr)->right_node, &tmp);
+		DeleteBranch (node_ptr_ptr);
+		CopyBranch (tmp, node_ptr_ptr);
+		DeleteBranch (&tmp);
+	}
+	else
+	{
+		Node_t *tmp = NULL;
+		CopyBranch ((*node_ptr_ptr)->left_node, &tmp);
+		DeleteBranch (node_ptr_ptr);
+		CopyBranch (tmp, node_ptr_ptr);
+		DeleteBranch (&tmp);
+	}
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int MulNull (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			MulNull (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR)) 
+		{
+			MulNull (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->value.cmd_opr == CMD_MUL) &&						
+			((((*node_ptr_ptr)->left_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->left_node->value.dig == 0)) ||
+			 (((*node_ptr_ptr)->right_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->right_node->value.dig == 0))) )
+		{	
+			Mul_Null (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Mul_Null (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	DeleteBranch (node_ptr_ptr);
+	NodeCtor_Dig (node_ptr_ptr, 0);
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int PowOne (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			PowOne (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR)) 
+		{
+			PowOne (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->value.cmd_opr == CMD_POW) &&						
+			((*node_ptr_ptr)->right_node->type == DIGIT) &&
+			((*node_ptr_ptr)->right_node->value.dig == 1) )
+		{	
+			Pow_One (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Pow_One (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	Node_t *tmp = NULL;
+	CopyBranch ((*node_ptr_ptr)->left_node, &tmp);
+	DeleteBranch (node_ptr_ptr);
+	CopyBranch (tmp, node_ptr_ptr);
+	DeleteBranch (&tmp);
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int PowNull (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			PowNull (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR)) 
+		{
+			PowNull (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->value.cmd_opr == CMD_POW) &&						
+			((*node_ptr_ptr)->right_node->type == DIGIT) &&
+			((*node_ptr_ptr)->right_node->value.dig == 0) )
+		{	
+			Pow_Null (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Pow_Null (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	DeleteBranch (node_ptr_ptr);
+	NodeCtor_Dig (node_ptr_ptr, 1);
+
+	return 0;
+}
+
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int AddNull (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->type == OPERATOR)
+	{
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->left_node->type == OPERATOR))
+		{
+			AddNull (&((*node_ptr_ptr)->left_node));
+		}
+
+		if (((*node_ptr_ptr)->right_node != NULL) &&
+			((*node_ptr_ptr)->right_node->type == OPERATOR)) 
+		{
+			AddNull (&((*node_ptr_ptr)->right_node));
+		}
+
+		if (((*node_ptr_ptr)->left_node != NULL) &&
+			((*node_ptr_ptr)->right_node != NULL) && 
+			((*node_ptr_ptr)->value.cmd_opr == CMD_ADD) &&						
+			((((*node_ptr_ptr)->left_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->left_node->value.dig == 0)) ||
+			 (((*node_ptr_ptr)->right_node->type == DIGIT) &&
+			  ((*node_ptr_ptr)->right_node->value.dig == 0))) )
+		{	
+			Add_Null (node_ptr_ptr);
+		}
+	}
+
+		return 0;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int Add_Null (Node_t **node_ptr_ptr)
+{
+	assert (node_ptr_ptr != NULL);
+	assert (*node_ptr_ptr != NULL);
+
+	if ((*node_ptr_ptr)->left_node->type == DIGIT)
+	{
+		Node_t *tmp = NULL;
+		CopyBranch ((*node_ptr_ptr)->right_node, &tmp);
+		DeleteBranch (node_ptr_ptr);
+		CopyBranch (tmp, node_ptr_ptr);
+		DeleteBranch (&tmp);
+	}
+	else
+	{
+		Node_t *tmp = NULL;
+		CopyBranch ((*node_ptr_ptr)->left_node, &tmp);
+		DeleteBranch (node_ptr_ptr);
+		CopyBranch (tmp, node_ptr_ptr);
+		DeleteBranch (&tmp);
+	}
+
+	return 0;
+}
+
 
 
 //_________________________======================________________________________
@@ -523,11 +972,14 @@ int PrintNode (Node_t *node_ptr)
 	{
 		switch (node_ptr->value.cmd_opr) 
 		{
-			case CMD_ADD: printf ("+"); break;
-			case CMD_SUB: printf ("-"); break;
-			case CMD_MUL: printf ("*"); break;
-			case CMD_DIV: printf ("/"); break;
-			case CMD_POW: printf ("^"); break;
+			case CMD_ADD:  printf ("+");   break;
+			case CMD_SUB:  printf ("-");   break;
+			case CMD_MUL:  printf ("*");   break;
+			case CMD_DIV:  printf ("/");   break;
+			case CMD_POW:  printf ("^");   break;
+			case CMD_LN:   printf ("ln");  break;
+			case CMD_SIN:  printf ("sin"); break;
+			case CMD_COS:  printf ("cos"); break;
 			default: printf ("!!Error command <%d>!!\n", node_ptr->value.cmd_opr);
 		}
 	}
@@ -763,6 +1215,30 @@ int Print_Node_Info (Node_t *node_ptr, int depth)
 									LABEL_OPR 
 					    		   ", fillcolor = \"%s\"];}\n", 
 						 depth, node_ptr, "^", "yellow");
+				break;	
+			}
+			case CMD_LN: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "ln", "yellow");
+				break;	
+			}
+			case CMD_SIN: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "sin", "yellow");
+				break;	
+			}
+			case CMD_COS: 
+			{		
+				fprintf (file_out, "	{rank = same; \"%dd\"; \"%p\" [label = " 
+									LABEL_OPR 
+					    		   ", fillcolor = \"%s\"];}\n", 
+						 depth, node_ptr, "cos", "yellow");
 				break;	
 			}
 			default : break;

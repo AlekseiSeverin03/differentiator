@@ -2,6 +2,7 @@
 // diftor.h
 
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include "file_operations.h"
@@ -36,6 +37,9 @@ enum COMMANDS
 	CMD_MUL = 3,
 	CMD_DIV = 4,
 	CMD_POW = 5,
+	CMD_LN  = 6,
+	CMD_SIN = 7,
+	CMD_COS = 8,
 };
 
 
@@ -91,6 +95,28 @@ int d_Sub (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
 int d_Mul (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
 int d_Div (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
 int d_Pow (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Ln  (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Sin (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+int d_Cos (Node_t *src_node_ptr, Node_t **dst_node_ptr_ptr);
+
+
+//__________________________=====================_______________________________
+//                          |   Optimizations   |
+//                          =====================
+
+int Arithmetic_Const (Node_t **node_ptr_ptr);
+int ArithmeticConst  (Node_t **node_ptr_ptr);
+int Mul_One          (Node_t **node_ptr_ptr);
+int MulOne           (Node_t **node_ptr_ptr);
+int Mul_Null         (Node_t **node_ptr_ptr);
+int MulNull          (Node_t **node_ptr_ptr);
+int Pow_One          (Node_t **node_ptr_ptr);
+int PowOne           (Node_t **node_ptr_ptr);
+int Pow_Null         (Node_t **node_ptr_ptr);
+int PowNull          (Node_t **node_ptr_ptr);
+int AddNull          (Node_t **node_ptr_ptr);
+int Add_Null         (Node_t **node_ptr_ptr);
+
 
 
 //__________________________=====================_______________________________

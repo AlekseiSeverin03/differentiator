@@ -7,18 +7,8 @@ digraph List
 		"0d"->"1d"->"2d"->"3d"->"4d"->"5d"->"6d"->"7d"->"8d"->"9d"->"10d";
 	}
 node [shape = record, style = filled];
-	{rank = same; "2d"; "0x128606b10" [label = "data: x ", fillcolor = "red"];}
-	{rank = same; "1d"; "0x128606ab0" [label = "data: ^ ", fillcolor = "yellow"];}
-	{rank = same; "2d"; "0x128606b40" [label = "data: 1.0 ", fillcolor = "green"];}
-	{rank = same; "0d"; "0x128606a80" [label = "data: * ", fillcolor = "yellow"];}
-	{rank = same; "2d"; "0x128606b70" [label = "data: 2.0 ", fillcolor = "green"];}
-	{rank = same; "1d"; "0x128606ae0" [label = "data: * ", fillcolor = "yellow"];}
-	{rank = same; "2d"; "0x128606ba0" [label = "data: 1.0 ", fillcolor = "green"];}
-	"0x128606ab0"->"0x128606b10" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606a80"->"0x128606ab0" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606ab0"->"0x128606b40" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606a80"->"0x128606a80" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606ae0"->"0x128606b70" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606a80"->"0x128606ae0" [color = "black", frontcolor = "grey", label = ""];
-	"0x128606ae0"->"0x128606ba0" [color = "black", frontcolor = "grey", label = ""];
+	{rank = same; "0d"; "0x12df042f0" [label = "data: cos ", fillcolor = "yellow"];}
+	{rank = same; "1d"; "0x12df04320" [label = "data: x ", fillcolor = "red"];}
+	"0x12df042f0"->"0x12df042f0" [color = "black", frontcolor = "grey", label = ""];
+	"0x12df042f0"->"0x12df04320" [color = "black", frontcolor = "grey", label = ""];
 }
